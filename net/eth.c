@@ -109,6 +109,7 @@ static int __def_eth_init(bd_t *bis)
 {
 	return -1;
 }
+
 int cpu_eth_init(bd_t *bis) __attribute__((weak, alias("__def_eth_init")));
 int board_eth_init(bd_t *bis) __attribute__((weak, alias("__def_eth_init")));
 
@@ -214,7 +215,17 @@ int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 		eth_setenv_enetaddr_by_index(base_name, eth_number,
 					     dev->enetaddr);
 		printf("\nWarning: %s using MAC address from net device\n",
-			dev->name);
+		       dev->name);
+	} else if (is_zero_ether_addr(dev->enetaddr)) {
+#ifdef CONFIG_RANDOM_MACADDR
+		eth_random_enetaddr(dev->enetaddr);
+		printf("\nWarning: %s (eth%d) using random MAC address - %pM\n",
+		       dev->name, eth_number, dev->enetaddr);
+#else
+		printf("\nError: %s address not set.\n",
+		       dev->name);
+		return -EINVAL;
+#endif
 	}
 
 	if (dev->write_hwaddr &&
