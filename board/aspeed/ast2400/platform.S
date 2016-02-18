@@ -184,6 +184,48 @@ LPC_Patch_E:
 
 .globl lowlevel_init
 lowlevel_init:
+    /* setup UART */
+    ldr r0, =CONFIG_ASPEED_COM_LCR
+    mov r1, #0x83
+    str r1, [r0]
+
+    ldr r0, =0x1e6e202c
+    ldr r1, =0x00000010
+    str r1, [r0]
+
+    ldr r2, [r0]
+    mov r2, r2, lsr #12
+    tst r2, #0x01
+    ldr r0, =CONFIG_ASPEED_COM
+#if CONFIG_BAUDRATE == 115200
+    moveq r1, #0x0D                              @ Baudrate 115200
+    movne r1, #0x01                              @ Baudrate 115200, div13
+#endif
+#if CONFIG_BAUDRATE == 57600
+    moveq r1, #0x1A                              @ Baudrate 57600
+    movne r1, #0x02                              @ Baudrate 57600, div13
+#endif
+#if CONFIG_BAUDRATE == 38400
+    moveq r1, #0x27                              @ Baudrate 38400
+    movne r1, #0x03                              @ Baudrate 38400 , div13
+#endif
+#if CONFIG_BAUDRATE == 9600
+    moveq r1, #0x9c                              @ Baudrate 9600
+    movne r1, #0x0C                              @ Baudrate 9600 , div13
+#endif
+    str r1, [r0]
+
+    ldr r0, =CONFIG_ASPEED_COM_IER
+    mov r1, #0x00
+    str r1, [r0]
+
+    ldr r0, =CONFIG_ASPEED_COM_LCR
+    mov r1, #0x03
+    str r1, [r0]
+
+    ldr r0, =CONFIG_ASPEED_COM_IIR
+    mov r1, #0x07
+    str r1, [r0]
 
 init_dram:
     /* save lr */
@@ -336,45 +378,6 @@ set_MPLL:
 /* Debug - UART console message */
     ldr r0, =0x1e6e2080
     ldr r1, =0xFFFF0000                          @ enable UART3 and UART4
-    str r1, [r0]
-
-    ldr r0, =CONFIG_ASPEED_COM_LCR
-    mov r1, #0x83
-    str r1, [r0]
-
-    ldr r0, =0x1e6e202c
-    ldr r2, [r0]
-    mov r2, r2, lsr #12
-    tst r2, #0x01
-    ldr r0, =CONFIG_ASPEED_COM
-#if CONFIG_BAUDRATE == 115200
-    moveq r1, #0x0D                              @ Baudrate 115200
-    movne r1, #0x01                              @ Baudrate 115200, div13
-#endif
-#if CONFIG_BAUDRATE == 57600
-    moveq r1, #0x1A                              @ Baudrate 57600
-    movne r1, #0x02                              @ Baudrate 57600, div13
-#endif
-#if CONFIG_BAUDRATE == 38400
-    moveq r1, #0x27                              @ Baudrate 38400
-    movne r1, #0x03                              @ Baudrate 38400 , div13
-#endif
-#if CONFIG_BAUDRATE == 9600
-    moveq r1, #0x9c                              @ Baudrate 9600
-    movne r1, #0x0C                              @ Baudrate 9600 , div13
-#endif
-    str r1, [r0]
-
-    ldr r0, =CONFIG_ASPEED_COM_IER
-    mov r1, #0x00
-    str r1, [r0]
-
-    ldr r0, =CONFIG_ASPEED_COM_LCR
-    mov r1, #0x03
-    str r1, [r0]
-
-    ldr r0, =CONFIG_ASPEED_COM_IIR
-    mov r1, #0x07
     str r1, [r0]
 
     ldr r0, =CONFIG_ASPEED_COM
