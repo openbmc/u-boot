@@ -580,6 +580,7 @@ int aspeednic_initialize(bd_t *bis)
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
   miiphy_register(dev->name, faraday_mdio_read, faraday_mdio_write);
 #endif
+  dev->halt(dev);
 
   return 1;
 }
@@ -1359,6 +1360,7 @@ static int aspeednic_recv(struct eth_device* dev)
 
 static void aspeednic_halt(struct eth_device* dev)
 {
+  printf("Stopping Network\n");
   STOP_MAC(dev);
 }
 
