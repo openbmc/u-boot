@@ -560,10 +560,10 @@ int aspeednic_initialize(bd_t *bis)
   *(volatile u_long *)(SCU_BASE + SCU_SCRATCH_REGISTER) = cpu_to_le32((SCURegister & ~(0x3000)) | (CONFIG_MAC2_PHY_SETTING << 12));
 
 
-  dev->init   = aspeednic_init;
-  dev->halt   = aspeednic_halt;
-  dev->send   = aspeednic_send;
-  dev->recv   = aspeednic_recv;
+  dev->init = aspeednic_init;
+  dev->halt = aspeednic_halt;
+  dev->send = aspeednic_send;
+  dev->recv = aspeednic_recv;
   dev->write_hwaddr = aspeednic_write_hwaddr;
 
   /* Ensure we're not sleeping. */
@@ -1267,9 +1267,9 @@ static int aspeednic_send(struct eth_device* dev, volatile void *packet, int len
 //            memset ((void *)cpu_to_le32((u32) (packet + length)), 0, 60 - length);
     length = 60;
   }
-  tx_ring[tx_new].buf    = cpu_to_le32(((u32) packet));
-  tx_ring[tx_new].status   &= (~(0x3FFF));
-  tx_ring[tx_new].status   |= cpu_to_le32(LTS | FTS | length);
+  tx_ring[tx_new].buf = cpu_to_le32(((u32) packet));
+  tx_ring[tx_new].status &= (~(0x3FFF));
+  tx_ring[tx_new].status |= cpu_to_le32(LTS | FTS | length);
   tx_ring[tx_new].status |= cpu_to_le32(TXDMA_OWN);
 
   OUTL(dev, POLL_DEMAND, TXPD_REG);
@@ -1297,7 +1297,7 @@ static int aspeednic_send(struct eth_device* dev, volatile void *packet, int len
 static int aspeednic_recv(struct eth_device* dev)
 {
   s32   status;
-  int   length    = 0;
+  int   length = 0;
 
   for ( ; ; )
   {
