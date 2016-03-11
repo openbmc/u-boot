@@ -574,8 +574,6 @@ int aspeednic_initialize(bd_t *bis)
     udelay(10 * 1000);
   }
 
-  dev->init(dev, bis);
-
   eth_register(dev);
 
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
