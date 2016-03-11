@@ -1363,10 +1363,6 @@ static void aspeednic_halt(struct eth_device* dev)
 
 static int aspeednic_write_hwaddr(struct eth_device* dev)
 {
-  if (!eth_getenv_enetaddr_by_index("eth", 0, dev->enetaddr)) {
-    eth_random_enetaddr(dev->enetaddr);
-  }
-
   OUTL(dev, ((dev->enetaddr[2] << 24) | (dev->enetaddr[3] << 16)
              | (dev->enetaddr[4] << 8) | dev->enetaddr[5]), MAC_LADR_REG);
   OUTL(dev, ((dev->enetaddr[0] << 8) | dev->enetaddr[1]), MAC_MADR_REG);
