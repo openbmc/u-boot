@@ -139,7 +139,7 @@
 
 #define CONFIG_SYS_LOAD_ADDR		0x83000000	/* default load address */
 
-#define CONFIG_BOOTARGS		"console=ttyS0,115200n8 ramdisk_size=16384 root=/dev/ram rw init=/linuxrc mem=80M"
+#define CONFIG_BOOTARGS		"console=ttyS4,115200 earlyprintk"
 
 /* ------------------------------------------------------------------------- */
 
