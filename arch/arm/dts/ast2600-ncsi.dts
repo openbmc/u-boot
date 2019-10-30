@@ -286,7 +286,6 @@
 	status = "okay";
 };
 
-#if 0
 &fsim0 {
 	status = "okay";
 };
@@ -294,7 +293,6 @@
 &fsim1 {
 	status = "okay";
 };
-#endif
 
 &ehci1 {
 	status = "okay";
