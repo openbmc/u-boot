@@ -59,6 +59,7 @@ hostprogs-$(CONFIG_FIT_SIGNATURE) += fit_info fit_check_sign
 hostprogs-$(CONFIG_CMD_BOOTEFI_SELFTEST) += file2include
 
 FIT_SIG_OBJS-$(CONFIG_FIT_SIGNATURE) := common/image-sig.o
+FIT_CIPHER_OBJS-$(CONFIG_FIT_CIPHER) := common/image-cipher.o
 
 # The following files are synced with upstream DTC.
 # Use synced versions from scripts/dtc/libfdt/.
@@ -75,12 +76,16 @@ RSA_OBJS-$(CONFIG_FIT_SIGNATURE) := $(addprefix lib/rsa/, \
 					rsa-sign.o rsa-verify.o rsa-checksum.o \
 					rsa-mod-exp.o)
 
+AES_OBJS-$(CONFIG_FIT_CIPHER) := $(addprefix lib/aes/, \
+					aes-encrypt.o)
+
 ROCKCHIP_OBS = lib/rc4.o rkcommon.o rkimage.o rksd.o rkspi.o
 
 # common objs for dumpimage and mkimage
 dumpimage-mkimage-objs := aisimage.o \
 			atmelimage.o \
 			$(FIT_SIG_OBJS-y) \
+			$(FIT_CIPHER_OBJS-y) \
 			common/bootm.o \
 			lib/crc32.o \
 			default_image.o \
@@ -120,7 +125,8 @@ dumpimage-mkimage-objs := aisimage.o \
 			gpimage.o \
 			gpimage-common.o \
 			mtk_image.o \
-			$(RSA_OBJS-y)
+			$(RSA_OBJS-y) \
+			$(AES_OBJS-y)
 
 dumpimage-objs := $(dumpimage-mkimage-objs) dumpimage.o
 mkimage-objs   := $(dumpimage-mkimage-objs) mkimage.o
@@ -139,6 +145,12 @@ ifdef CONFIG_FIT_SIGNATURE
 # is tricky, so manually define this options here.
 HOST_EXTRACFLAGS	+= -DCONFIG_FIT_SIGNATURE
 HOST_EXTRACFLAGS	+= -DCONFIG_FIT_SIGNATURE_MAX_SIZE=$(CONFIG_FIT_SIGNATURE_MAX_SIZE)
+endif
+
+ifdef CONFIG_FIT_CIPHER
+# This affects include/image.h, but including the board config file
+# is tricky, so manually define this options here.
+HOST_EXTRACFLAGS	+= -DCONFIG_FIT_CIPHER
 endif
 
 ifdef CONFIG_SYS_U_BOOT_OFFS
