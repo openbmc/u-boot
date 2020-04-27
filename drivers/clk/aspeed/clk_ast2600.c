@@ -108,6 +108,13 @@ static const struct ast2600_pll_desc ast2600_pll_lookup[] = {
 		.cfg.reg.b.n = 2,
 		.cfg.reg.b.p = 15,
 		.cfg.ext_reg = 0x31,
+	}, {
+		.in = AST2600_CLK_IN,
+		.out = 100000000, /* 100MHz */
+		.cfg.reg.b.m = 63,
+		.cfg.reg.b.n = 0,
+		.cfg.reg.b.p = 15,
+		.cfg.ext_reg = 0x1
 	},
 };
 
