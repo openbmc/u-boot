@@ -1,7 +1,14 @@
 if RAM || SPL_RAM
 
+config AST2600_SDRAMMC_MANUAL_CLK
+	bool "AST2600 SDRAM manual clock rate selection"
+	help
+	 In order to speed up DRAM init time, write pre-defined values to
+	 registers directly. This skips devce tree based detection.
+
 choice
 	prompt "DDR4 target data rate"
+	depends on AST2600_SDRAMMC_MANUAL_CLK
 	default ASPEED_DDR4_1600
 
 config ASPEED_DDR4_400

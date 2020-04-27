@@ -19,10 +19,6 @@
 #include <dt-bindings/clock/ast2600-clock.h>
 #include "sdram_phy_ast2600.h"
 
-/* in order to speed up DRAM init time, write pre-defined values to registers
- * directly */
-#define AST2600_SDRAMMC_MANUAL_CLK
-
 /* register offset */
 #define AST_SCU_FPGA_STATUS	0x004
 #define AST_SCU_HANDSHAKE	0x100
@@ -61,6 +57,7 @@
 #define SCU_MPLL_FREQ_100M		0x0078003F
 #define SCU_MPLL_EXT_100M		0x0000001F
 /* MPLL configuration */
+#if defined(CONFIG_AST2600_SDRAMMC_MANUAL_CLK)
 #if defined(CONFIG_ASPEED_DDR4_1600)
 #define SCU_MPLL_FREQ_CFG		SCU_MPLL_FREQ_400M
 #define SCU_MPLL_EXT_CFG		SCU_MPLL_EXT_400M
@@ -75,6 +72,7 @@
 #define SCU_MPLL_EXT_CFG		SCU_MPLL_EXT_100M
 #else
 #error "undefined DDR4 target rate\n"
+#endif
 #endif
 
 /* AC timing and SDRAM mode registers */
@@ -105,6 +103,7 @@
 #endif /* end of "#if defined(CONFIG_FPGA_ASPEED) ||                           \
 	  defined(CONFIG_ASPEED_PALLADIUM)" */
 
+#if defined(CONFIG_AST2600_SDRAMMC_MANUAL_CLK)
 #if defined(CONFIG_FPGA_ASPEED) || defined(CONFIG_ASPEED_PALLADIUM)
 #define DDR4_TRFC			DDR4_TRFC_FPGA
 #else
@@ -126,6 +125,7 @@
 #endif	/* end of "#if (SCU_MPLL_FREQ_CFG == SCU_MPLL_FREQ_400M)" */
 #endif  /* end of "#if defined(CONFIG_FPGA_ASPEED) ||                          \
 	   defined(CONFIG_ASPEED_PALLADIUM)" */
+#endif /* end of "if defined(CONFIG_AST2600_SDRAMMC_MANUAL_CLK)" */
 
 /* supported SDRAM size */
 #define SDRAM_SIZE_1KB		(1024U)
@@ -163,6 +163,8 @@ struct dram_info {
 	void __iomem *phy_setting;
 	void __iomem *phy_status;
 	ulong clock_rate;
+	ulong ddr4_trfc;
+	ulong phy_train_trfc;
 };
 
 static void ast2600_sdramphy_kick_training(struct dram_info *info)
@@ -236,7 +238,7 @@ static void ast2600_sdramphy_init(u32 *p_tbl, struct dram_info *info)
         }
 
 	data = readl(info->phy_setting + 0x84) & ~GENMASK(16, 0);
-	data |= DDR4_PHY_TRAIN_TRFC;
+	data |= info->phy_train_trfc;
 	writel(data, info->phy_setting + 0x84);
 #endif
 }
@@ -632,7 +634,6 @@ static void ast2600_sdrammc_calc_size(struct dram_info *info)
 	const int write_test_offset = 0x100000;
 	u32 test_pattern = 0xdeadbeef;
 	u32 cap_param = SDRAM_CONF_CAP_2048M;
-	u32 refresh_timing_param = DDR4_TRFC;
 	const u32 write_addr_base = CONFIG_SYS_SDRAM_BASE + write_test_offset;
 
 	for (ram_size = SDRAM_MAX_SIZE; ram_size > SDRAM_MIN_SIZE;
@@ -652,13 +653,13 @@ static void ast2600_sdrammc_calc_size(struct dram_info *info)
 			break;
 
 		--cap_param;
-		refresh_timing_param >>= 8;
+		info->ddr4_trfc >>= 8;
 		test_pattern = (test_pattern >> 4) | (test_pattern << 28);
 	}
 
 	clrsetbits_le32(&info->regs->ac_timing[1],
 			(SDRAM_AC_TRFC_MASK << SDRAM_AC_TRFC_SHIFT),
-			((refresh_timing_param & SDRAM_AC_TRFC_MASK)
+			((info->ddr4_trfc & SDRAM_AC_TRFC_MASK)
 			 << SDRAM_AC_TRFC_SHIFT));
 
 	info->info.base = CONFIG_SYS_SDRAM_BASE;
@@ -891,13 +892,46 @@ static int ast2600_sdrammc_probe(struct udevice *dev)
 		return PTR_ERR(priv->scu);
 	}
 
+#if defined(AST2600_SDRAMMC_MANUAL_CLK)
+	priv->ddr4_trfc = DDR4_TRFC;
+	priv->phy_train_trfc = DDR4_PHY_TRAIN_TRFC;
+#else
+	if (!priv->clock_rate) {
+		debug("clock rate not defined\n");
+		return -ENODEV;
+	}
+	switch (priv->clock_rate) {
+	case 400000000: /* 1600 */
+		priv->ddr4_trfc = DDR4_TRFC_1600;
+		priv->phy_train_trfc = 0xc30;
+		break;
+	case 334000000: /* 1333 */
+		priv->ddr4_trfc = DDR4_TRFC_1333;
+		priv->phy_train_trfc = 0xa25;
+		break;
+	case 200000000: /* 800 */
+		priv->ddr4_trfc = DDR4_TRFC_800;
+		priv->phy_train_trfc = 0x618;
+		break;
+	case 100000000: /* 400 */
+		priv->ddr4_trfc = DDR4_TRFC_400;
+		priv->phy_train_trfc = 0x30c;
+		break;
+	default:
+		printf("ERROR: Bad clock-frequency, forcing 334MHz\n");
+		priv->clock_rate = 334000000;
+		priv->ddr4_trfc = DDR4_TRFC_1333;
+		priv->phy_train_trfc = 0xa25;
+	}
+#endif
+
 	if (readl(priv->scu + AST_SCU_HANDSHAKE) & SCU_SDRAM_INIT_READY_MASK) {
 		printf("already initialized, ");
 		ast2600_sdrammc_update_size(priv);
 		return 0;
 	}
 
-#ifdef AST2600_SDRAMMC_MANUAL_CLK
+#if defined(CONFIG_AST2600_SDRAMMC_MANUAL_CLK)
 	reg = readl(priv->scu + AST_SCU_MPLL);
 	reg &= ~(BIT(24) | GENMASK(22, 0));
 	reg |= (BIT(25) | BIT(23) | SCU_MPLL_FREQ_CFG);
