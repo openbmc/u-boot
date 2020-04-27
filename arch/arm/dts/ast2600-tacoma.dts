@@ -39,7 +39,7 @@
 };
 
 &sdrammc {
-	clock-frequency = <400000000>;
+	clock-frequency = <334000000>;
 };
 
 &wdt2 {
