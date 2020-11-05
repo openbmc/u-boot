@@ -18,6 +18,7 @@
 	};
 
 	aliases {
+		mmc0 = &emmc_slot0;
 		spi0 = &fmc;
 		spi1 = &spi1;
 	};
@@ -80,9 +81,16 @@
 	};
 };
 
+&emmc {
+	u-boot,dm-pre-reloc;
+	timing-phase = <0x700ff>;
+};
+
 &emmc_slot0 {
+	u-boot,dm-pre-reloc;
 	status = "okay";
 	bus-width = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_emmc_default>;
+	sdhci-drive-type = <1>;
 };
