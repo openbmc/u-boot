@@ -78,7 +78,7 @@
 #define PHY_ANEG_TIMEOUT		800
 
 /* Uboot size */
-#define CONFIG_SYS_MONITOR_LEN (1024 * 1024)
+#define CONFIG_SYS_MONITOR_LEN ((1024 - 64) * 1024)
 
 #ifdef CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		0
