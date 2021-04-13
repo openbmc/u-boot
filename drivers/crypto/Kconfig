@@ -2,4 +2,23 @@ menu "Hardware crypto devices"
 
 source drivers/crypto/fsl/Kconfig
 
+config ASPEED_HACE
+	bool "ASPEED Hash and Crypto Engine"
+	depends on ASPEED_AST2600
+	imply SHA_HW_ACCEL
+	imply SHA_PROG_HW_ACCEL
+	imply SHA512
+	imply SHA512_ALGO
+	imply CMD_HASH
+	help
+	 Select this option to enable a driver for using the SHA engine in
+	 the ASPEED BMC SoCs.
+
+	 Enabling this allows the use of SHA operations in hardware without requiring the
+	 SHA software implementations, saving code size.
+
+	 Due to hardware limitations it cannot be used with a FIT placed in SPI
+	 FLASH. Data can only be hashed if it is in SDRAM, making this relevant
+	 for MMC and network boot only.
+
 endmenu
