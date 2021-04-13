@@ -94,3 +94,8 @@
 	pinctrl-0 = <&pinctrl_emmc_default>;
 	sdhci-drive-type = <1>;
 };
+
+&hace {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
