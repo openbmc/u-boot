@@ -22,6 +22,19 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 	gd->flags = 0;
+
+#ifdef CONFIG_ENABLE_SGPIO
+	/* Unlock SCU */
+	writel(SCU_PROTECT_UNLOCK, AST_SCU_BASE);
+
+	/* Enable SGPIO Master */
+	u32 reg = readl(AST_SCU_BASE + AST_SCU_FUN_PIN_CTRL2);
+	reg |= (SCU_FUN_PIN_SGPMI |
+			SCU_FUN_PIN_SGPMO |
+			SCU_FUN_PIN_SGPMLD |
+			SCU_FUN_PIN_SGPMCK);
+	writel(reg, AST_SCU_BASE + AST_SCU_FUN_PIN_CTRL2);
+#endif
 	return 0;
 }
 
