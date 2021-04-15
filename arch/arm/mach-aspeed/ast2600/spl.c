@@ -32,6 +32,19 @@ void board_init_f(ulong dummy)
 #endif
 }
 
+#ifdef CONFIG_SPL_BOARD_INIT
+void spl_board_init(void)
+{
+	struct udevice *dev;
+
+	if (uclass_get_device_by_driver(UCLASS_MISC,
+				DM_GET_DRIVER(aspeed_hace),
+				&dev)) {
+		debug("Warning: HACE initialization failure\n");
+	}
+}
+#endif
+
 u32 spl_boot_device(void)
 {
 	switch (aspeed_bootmode()) {
