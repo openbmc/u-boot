@@ -61,9 +61,24 @@ u32 spl_boot_device(void)
 	default:
 		break;
 	}
+#else
+	switch (aspeed_bootmode()) {
+	case AST_BOOTMODE_EMMC:
+		return BOOT_DEVICE_MMC1;
+	case AST_BOOTMODE_SPI:
+		return BOOT_DEVICE_SPI;
+	case AST_BOOTMODE_UART:
+		return BOOT_DEVICE_UART;
+	}
 #endif
 
 	return BOOT_DEVICE_NONE;
+}
+
+void board_boot_order(u32 *spl_boot_list)
+{
+	spl_boot_list[0] = spl_boot_device();
+	spl_boot_list[1] = ASPEED_BOOT_DEVICE_UART;
 }
 
 #ifdef CONFIG_SPL_OS_BOOT
