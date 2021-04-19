@@ -60,6 +60,19 @@ config ASPEED_SSP_RERV_MEM
 	help
 	  The size in bytes of reserve memory for ASPEED SoC SSP run.
 
+config ASPEED_LOADERS
+       bool "ASPEED custom loaders"
+       depends on SPL
+       default y
+       help
+        Enable the custom payload loading methods used by ASPEED. This is requited to
+        use ASPEED's proprietary secure boot feature.
+
+        Disable this is if you are using u-boot's common loader functionally
+        to eg. load u-boot as a FIT and use vboot.
+
+if ASPEED_LOADERS
+
 config ASPEED_SECURE_BOOT
 	bool "Support Aspeed secure boot feature"
 	depends on SPL && ASPEED_AST2600
@@ -159,6 +172,8 @@ config ASPEED_KERNEL_FIT_DRAM_BASE
 	help
 	  The DRAM address where the Kernel FIT image
 	  will be loaded if XIP is not supported
+
+endif
 
 source "arch/arm/mach-aspeed/ast2400/Kconfig"
 source "arch/arm/mach-aspeed/ast2500/Kconfig"

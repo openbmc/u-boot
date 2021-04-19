@@ -47,6 +47,7 @@ void spl_board_init(void)
 
 u32 spl_boot_device(void)
 {
+#if IS_ENABLED(CONFIG_ASPEED_LOADERS)
 	switch (aspeed_bootmode()) {
 	case AST_BOOTMODE_EMMC:
 		return (IS_ENABLED(CONFIG_ASPEED_SECURE_BOOT))?
@@ -60,6 +61,7 @@ u32 spl_boot_device(void)
 	default:
 		break;
 	}
+#endif
 
 	return BOOT_DEVICE_NONE;
 }
