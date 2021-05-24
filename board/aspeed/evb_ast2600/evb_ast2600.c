@@ -122,7 +122,7 @@ int board_early_init_f(void)
 #if 0
 	port80h_snoop_init();
 	sgpio_init();
-#endif
 	espi_init();
+#endif
 	return 0;
 }
