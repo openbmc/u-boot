@@ -66,7 +66,7 @@ u32 spl_boot_device(void)
 	case AST_BOOTMODE_EMMC:
 		return BOOT_DEVICE_MMC1;
 	case AST_BOOTMODE_SPI:
-		return BOOT_DEVICE_SPI;
+		return BOOT_DEVICE_RAM;
 	case AST_BOOTMODE_UART:
 		return BOOT_DEVICE_UART;
 	}
