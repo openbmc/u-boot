@@ -69,6 +69,7 @@ flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];		/* FLASH chips info */
 #define S25FL064A		0x160201
 #define S25FL128P		0x182001
 #define S25FL256S		0x190201
+#define S25FL256L		0x196001
 #define W25X16			0x1530ef
 #define W25X64			0x1730ef
 #define W25Q64BV		0x1740ef
@@ -975,6 +976,19 @@ static ulong flash_get_size (ulong base, flash_info_t *info)
 			info->address32 = 1;
 #endif
 			break;
+		case S25FL256L:
+			info->sector_count = 512;
+			info->size = 0x2000000;
+			info->address32 = 1;
+			erase_region_size = 0x10000;
+			info->readcmd = 0x0b;
+			info->dualport = 0;
+			info->dummybyte = 1;
+			info->buffersize = 256;
+			WriteClk = 50;
+			EraseClk = 20;
+			ReadClk = 50;
+			break;
 
 		case MX25L25635E:
 			info->sector_count = 256;
@@ -1348,7 +1362,7 @@ static ulong flash_get_size (ulong base, flash_info_t *info)
 		*((volatile ulong*) (info->reg_base + 0x4)) = reg;
 
 		/* set flash chips to 32bits addressing mode */
-		if ((info->flash_id & 0xFF) == 0x01)	/* Spansion */
+		if ((info->flash_id & 0xFF) == 0x01 && (info->flash_id != S25FL256L)) /* Spansion */
 			enable4b_spansion(info);
 		else if ((info->flash_id & 0xFF) == 0x20)	/* Numonyx */
 			enable4b_numonyx(info);
