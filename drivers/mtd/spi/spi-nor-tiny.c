@@ -208,6 +208,7 @@ static inline int set_4byte(struct spi_nor *nor, const struct flash_info *info,
 		/* Some Micron need WREN command; all will accept it */
 		need_wren = true;
 	case SNOR_MFR_MACRONIX:
+	case SNOR_MFR_PUYASEMI:
 	case SNOR_MFR_WINBOND:
 		if (need_wren)
 			write_enable(nor);
@@ -242,6 +243,7 @@ static inline int set_4byte(struct spi_nor *nor, const struct flash_info *info,
 
 #if defined(CONFIG_SPI_FLASH_SPANSION) ||	\
 	defined(CONFIG_SPI_FLASH_WINBOND) ||	\
+	defined(CONFIG_SPI_FLASH_PUYASEMI) ||	\
 	defined(CONFIG_SPI_FLASH_MACRONIX)
 /*
  * Read the status register, returning its value in the location
@@ -432,6 +434,45 @@ static int spi_nor_write(struct mtd_info *mtd, loff_t to, size_t len,
  * Return: 0 on success, -errno otherwise.
  */
 static int macronix_quad_enable(struct spi_nor *nor)
+{
+	int ret, val;
+
+	val = read_sr(nor);
+	if (val < 0)
+		return val;
+	if (val & SR_QUAD_EN_MX)
+		return 0;
+
+	write_enable(nor);
+
+	write_sr(nor, val | SR_QUAD_EN_MX);
+
+	ret = spi_nor_wait_till_ready(nor);
+	if (ret)
+		return ret;
+
+	ret = read_sr(nor);
+	if (!(ret > 0 && (ret & SR_QUAD_EN_MX))) {
+		dev_err(nor->dev, "Macronix Quad bit not set\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_SPI_FLASH_PUYASEMI
+/**
+ * puyasemi_quad_enable() - set QE bit in Status Register.
+ * @nor:	pointer to a 'struct spi_nor'
+ *
+ * Set the Quad Enable (QE) bit in the Status Register.
+ *
+ * bit 6 of the Status Register is the QE bit for Puyasemi like QSPI memories.
+ *
+ * Return: 0 on success, -errno otherwise.
+ */
+static int puyasemi_quad_enable(struct spi_nor *nor)
 {
 	int ret, val;
 
@@ -667,6 +708,11 @@ static int spi_nor_setup(struct spi_nor *nor, const struct flash_info *info,
 #ifdef CONFIG_SPI_FLASH_MACRONIX
 		case SNOR_MFR_MACRONIX:
 			err = macronix_quad_enable(nor);
+			break;
+#endif
+#ifdef CONFIG_SPI_FLASH_PUYASEMI
+		case SNOR_MFR_PUYASEMI:
+			err = puyasemi_quad_enable(nor);
 			break;
 #endif
 		case SNOR_MFR_ST:

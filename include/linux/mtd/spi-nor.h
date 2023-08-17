@@ -23,6 +23,7 @@
 #define SNOR_MFR_ST		CFI_MFR_ST /* ST Micro <--> Micron */
 #define SNOR_MFR_MICRON		CFI_MFR_MICRON /* ST Micro <--> Micron */
 #define SNOR_MFR_MACRONIX	CFI_MFR_MACRONIX
+#define SNOR_MFR_PUYASEMI	CFI_MFR_PUYASEMI
 #define SNOR_MFR_SPANSION	CFI_MFR_AMD
 #define SNOR_MFR_SST		CFI_MFR_SST
 #define SNOR_MFR_WINBOND	0xef /* Also used by some Spansion */

@@ -1529,6 +1529,45 @@ static int macronix_quad_enable(struct spi_nor *nor)
 }
 #endif
 
+#ifdef CONFIG_SPI_FLASH_PUYASEMI
+/**
+ * puyasemi_quad_enable() - set QE bit in Status Register.
+ * @nor:	pointer to a 'struct spi_nor'
+ *
+ * Set the Quad Enable (QE) bit in the Status Register.
+ *
+ * bit 6 of the Status Register is the QE bit for Puyasemi like QSPI memories.
+ *
+ * Return: 0 on success, -errno otherwise.
+ */
+static int puyasemi_quad_enable(struct spi_nor *nor)
+{
+	int ret, val;
+
+	val = read_sr(nor);
+	if (val < 0)
+		return val;
+	if (val & SR_QUAD_EN_MX)
+		return 0;
+
+	write_enable(nor);
+
+	write_sr(nor, val | SR_QUAD_EN_MX);
+
+	ret = spi_nor_wait_till_ready(nor);
+	if (ret)
+		return ret;
+
+	ret = read_sr(nor);
+	if (!(ret > 0 && (ret & SR_QUAD_EN_MX))) {
+		dev_err(nor->dev, "Macronix Quad bit not set\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+#endif
+
 #if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
 /*
  * Write status Register and configuration register with 2 bytes
@@ -2281,6 +2320,11 @@ static int spi_nor_parse_bfpt(struct spi_nor *nor,
 		params->quad_enable = macronix_quad_enable;
 		break;
 #endif
+#ifdef CONFIG_SPI_FLASH_PUYASEMI
+	case BFPT_DWORD15_QER_SR1_BIT6:
+		params->quad_enable = puyasemi_quad_enable;
+		break;
+#endif
 #if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
 	case BFPT_DWORD15_QER_SR2_BIT1:
 		params->quad_enable = spansion_read_cr_quad_enable;
@@ -2470,6 +2514,11 @@ static int spi_nor_init_params(struct spi_nor *nor,
 #ifdef CONFIG_SPI_FLASH_MACRONIX
 		case SNOR_MFR_MACRONIX:
 			params->quad_enable = macronix_quad_enable;
+			break;
+#endif
+#ifdef CONFIG_SPI_FLASH_PUYASEMI
+		case SNOR_MFR_PUYASEMI:
+			params->quad_enable = puyasemi_quad_enable;
 			break;
 #endif
 		case SNOR_MFR_ST:

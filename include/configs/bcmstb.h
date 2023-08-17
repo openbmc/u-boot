@@ -137,6 +137,7 @@ extern phys_addr_t prior_stage_fdt_address;
 #define CONFIG_ST_SMI
 #define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_SPI_FLASH_MACRONIX
+#define CONFIG_SPI_FLASH_PUYASEMI
 
 /*
  * Filesystem configuration.
