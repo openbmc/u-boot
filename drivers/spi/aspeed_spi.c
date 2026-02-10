@@ -30,14 +30,16 @@ struct aspeed_spi_regs {
 					/* 0x30 .. 0x38 Segment Address */
 	u32 _reserved1[5];		/* .. */
 	u32 soft_rst_cmd_ctrl;	/* 0x50 Auto Soft-Reset Command Control */
-	u32 _reserved2[11];		/* .. */
+	u32 _reserved2[4];		/* .. */
+	u32 fmc_wdt2_ctrl;		/* 0x64 FMC_WDT2 control */
+	u32 _reserved3[6];		/* .. */
 	u32 dma_ctrl;			/* 0x80 DMA Control/Status */
 	u32 dma_flash_addr;		/* 0x84 DMA Flash Side Address */
 	u32 dma_dram_addr;		/* 0x88 DMA DRAM Side Address */
 	u32 dma_len;			/* 0x8c DMA Length Register */
 	u32 dma_checksum;		/* 0x90 Checksum Calculation Result */
 	u32 timings;			/* 0x94 Read Timing Compensation */
-	u32 _reserved3[1];
+	u32 _reserved4[1];
 	/* not used */
 	u32 soft_strap_status;		/* 0x9c Software Strap Status */
 	u32 write_cmd_filter_ctrl;	/* 0xa0 Write Command Filter Control */
@@ -45,7 +47,7 @@ struct aspeed_spi_regs {
 	u32 lock_ctrl_reset;		/* 0xa8 Lock Control (SRST#) */
 	u32 lock_ctrl_wdt;		/* 0xac Lock Control (Watchdog) */
 	u32 write_addr_filter[8];	/* 0xb0 Write Address Filter */
-	u32 _reserved4[12];
+	u32 _reserved5[12];
 	u32 fully_qualified_cmd[20];	/* 0x100 Fully Qualified Command */
 	u32 addr_qualified_cmd[12];	/* 0x150 Address Qualified Command */
 };
@@ -163,7 +165,8 @@ struct aspeed_spi_regs {
 #define SPI_3B_AUTO_CLR_REG   0x1e6e2510
 #define SPI_3B_AUTO_CLR       BIT(9)
 
-
+/* FMC_WDT2 control register */
+#define FMC_WDT2_ENABLE		BIT(0)
 /*
  * flash related info
  */
@@ -267,6 +270,7 @@ struct aspeed_spi_priv {
 	ulong hclk_rate; /* AHB clock rate */
 	u8 num_cs;
 	bool is_fmc;
+	bool disable_fmc_wdt2;
 
 	struct aspeed_spi_flash flashes[ASPEED_SPI_MAX_CS];
 	u32 flash_count;
@@ -682,6 +686,9 @@ static int aspeed_spi_controller_init(struct aspeed_spi_priv *priv)
 	 */
 	setbits_le32(&priv->regs->conf,
 		     CONF_ENABLE_W2 | CONF_ENABLE_W1 | CONF_ENABLE_W0);
+
+	if (priv->is_fmc && priv->disable_fmc_wdt2)
+		clrbits_le32(&priv->regs->fmc_wdt2_ctrl, FMC_WDT2_ENABLE);
 
 	/*
 	 * Set safe default settings for each device. These will be
@@ -1907,6 +1914,9 @@ static int aspeed_spi_probe(struct udevice *bus)
 	 * SPI controllers
 	 */
 	priv->is_fmc = dev_get_driver_data(bus);
+	priv->disable_fmc_wdt2 =
+	    device_is_compatible(bus, "aspeed,ast2600-fmc") &&
+	    dev_read_bool(bus, "aspeed,abr-watchdog-disable");
 
 	ret = aspeed_spi_controller_init(priv);
 	if (ret)
