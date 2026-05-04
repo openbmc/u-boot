@@ -62,7 +62,7 @@
 
 &mac0 {
 	status = "okay";
-	phy-mode = "rgmii";
+	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy3>;
 
 	pinctrl-names = "default";
@@ -80,12 +80,6 @@
 		compatible = "ethernet-phy-ieee802.3-c22";
 		reg = <2>;
 	};
-};
-
-&scu {
-	mac0-clk-delay = <0x1d 0x0a
-			  0x1d 0x0a
-			  0x1d 0x0a>;
 };
 
 &sdrammc {
