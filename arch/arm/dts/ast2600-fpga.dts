@@ -110,3 +110,9 @@
         status = "okay";
 
 };
+
+&scu {
+	mac0-clk-delay = <0x10 0x0a
+			0x10 0x10
+			0x10 0x10>;
+};
