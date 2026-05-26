@@ -682,6 +682,7 @@ dtb-$(CONFIG_ARCH_ASPEED) += \
 	ast2500-genesis3.dtb \
 	ast2500-romulus.dtb \
 	ast2600-ampere.dtb \
+	ast2600-asus-kommando-ipmi-card.dtb \
 	ast2600-bletchley.dtb \
 	ast2600-dcscm.dtb \
 	ast2600-evb-ecc.dtb \
