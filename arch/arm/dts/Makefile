@@ -702,6 +702,7 @@ dtb-$(CONFIG_ARCH_ASPEED) += \
 	ast2600-slt.dtb \
 	ast2600-tacoma.dtb \
 	ast2600-tacoma.dtb \
+	ast2600-vr-bmc-nvidia.dtb \
 	ast2600-x4tf.dtb \
 	ast2600a0-evb.dtb \
 	ast2600a1-evb.dtb
