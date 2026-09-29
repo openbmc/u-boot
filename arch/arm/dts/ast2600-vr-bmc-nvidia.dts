@@ -5,7 +5,8 @@
 
 / {
 	model = "AST2600 VR-NVL BMC";
-	compatible = "nvidia,vr-nvl-bmc", "aspeed,ast2600";
+	compatible = "nvidia,vr-nvl-bmc", "nvidia,vr-c2-bmc",
+		     "aspeed,ast2600";
 
 	memory {
 		device_type = "memory";
